@@ -61,7 +61,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
     } else if( token.expression === ':' || token.expression === 'else' ){
       target = '$$otherwise';
     } else if( token.expression === '/' ) {
-      if( !waitingForClose ) {
+      if( !waitingForClose && cmd !== 'root' ) {
         throw new Error('can not close root level');
       }
       return {
