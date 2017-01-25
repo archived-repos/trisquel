@@ -16,29 +16,27 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
       targets = { $$content: [], $$otherwise: [] },
       target = '$$content',
       cmdResult,
-      resolver = function () {
-        return function (scope) {
-          return cmds[cmd](scope, expression, function (s) {
-            return targets.$$content.map(function (piece) {
-              return piece instanceof Function ? piece(s) : piece;
-            }).join('');
-          }, function (s) {
-            return targets.$$otherwise.map(function (piece) {
-              return piece instanceof Function ? piece(s) : piece;
-            }).join('');
-          });
-        }
+      resolver = function (scope) {
+        return cmds[cmd](scope, expression, function (s) {
+          return targets.$$content.map(function (piece) {
+            return piece instanceof Function ? piece(s) : piece;
+          }).join('');
+        }, function (s) {
+          return targets.$$otherwise.map(function (piece) {
+            return piece instanceof Function ? piece(s) : piece;
+          }).join('');
+        });
       };
 
   while( token !== undefined ) {
 
     if( typeof token === 'string' ) {
       targets[target].push(token);
-    } else if( token.cmd === 'case' ) {
-      if( !waitingForClose ) {
-        throw new Error('template root can not have cases');
-      }
-      target = expression.trim();
+    // } else if( token.cmd === 'case' ) {
+    //   if( !waitingForClose ) {
+    //     throw new Error('template root can not have cases');
+    //   }
+    //   target = expression.trim();
     } else if( typeof token.cmd === 'string' ) {
       if( token.cmd ) {
         if( !cmds[token.cmd] ) {
@@ -48,10 +46,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
         if( cmds[token.cmd].$noContent ) {
           targets[target].push(singleCmd(token.cmd, token.expression));
         } else {
-          cmdResult = raiseList(tokens, token.cmd, token.expression, true);
-
-          targets[target].push(cmdResult.fn);
-          tokens = cmdResult.tokens;
+          targets[target].push( raiseList(tokens, token.cmd, token.expression, true) );
         }
 
       } else {
@@ -61,25 +56,22 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
     } else if( token.expression === ':' || token.expression === 'else' ){
       target = '$$otherwise';
     } else if( token.expression === '/' ) {
-      if( !waitingForClose && cmd !== 'root' ) {
+      if( !waitingForClose ) {
         throw new Error('can not close root level');
       }
-      return {
-        fn: resolver(),
-        tokens: tokens
-      };
+      return resolver;
     } else {
       throw new Error('\'' + token.expression + '\' is not a valid no-cmd expression');
     }
 
-    token = tokens.shift()
+    token = tokens.shift();
   }
 
   if( waitingForClose ) {
     throw new Error('cmd \'' + cmd + '\' not closed propertly');
   }
 
-  return resolver();
+  return resolver;
 }
 
 function parse(tmpl){
@@ -110,10 +102,14 @@ function parse(tmpl){
         throw new Error('curly brackets mismatch');
       } else if( delta > 0 ) {
         var tracks = nextText.split('}');
-        if( (tracks.length - 1) < delta ) {
-          throw new Error('expression curly brackets mismatch');
+
+        while( delta > 0 ) {
+          if( (tracks.length - 1) < delta ) {
+            throw new Error('expression curly brackets mismatch');
+          }
+          expression += tracks.splice(0, delta).join('}') + '}';
+          delta = expression.split('{').length - expression.split('}').length;
         }
-        expression += tracks.splice(0, delta).join('}') + '}';
         nextText = tracks.join('}');
       }
     }
