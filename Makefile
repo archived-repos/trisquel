@@ -18,9 +18,8 @@ build: test
 	$(shell npm bin)/uglifyjs dist/trisquel.js -o dist/trisquel.min.js -c -m
 
 npm.publish:
-	# git push origin $(git_branch)
 	npm version patch
-	git push --tags
+	git push origin $(git_branch) && git push --tags
 	npm publish
 	@echo "published ${PKG_VERSION}"
 
