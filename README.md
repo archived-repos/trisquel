@@ -1,9 +1,10 @@
 # trisquel
 
-JS template engine
+Simple, customizable template engine for JavaScript
 
 [![](https://img.shields.io/npm/v/trisquel.svg)](https://www.npmjs.com/package/trisquel)
 [![Build Status](https://travis-ci.org/kiltjs/trisquel.svg?branch=master)](https://travis-ci.org/kiltjs/trisquel)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ### Installation
 
@@ -11,9 +12,9 @@ JS template engine
 npm install trisquel --save
 ```
 
-### Usage
+> Example data
 
-```.js
+``` js
 var data = {
   foo: 'bar',
   crash: {
@@ -25,39 +26,63 @@ var data = {
     bye: 'nobody'
   }
 };
+```
 
+#### Caching templates
+
+``` js
 template.put('partial-map', '$each{ item,key in map }[${foo}:${key}:${item}]{/}');
 
 template.put('partial-list', '$each{ item,i in list }[${foo}:${i}:${item}]{/}');
+
+// cached templates can be invoked with $include{}
 
 console.log( template('$if{ foo !== \'bar\' }whoops{:}map: $include{\'partial-map\'} {/}', data) );
 // returns 'map: [bar:hi:all][bar:bye:nobody]'
 
 console.log( template('$if{ foo !== \'bar\' }whoops{:}list: $include{\'partial-list\'} {/}', data) );
 // returns 'list: [bar:0:foo][bar:1:bar][bar:2:foobar]'
+```
 
+#### Filters
 
-var i18n = {
-  months: '${n} mes$if{ n > 1 }es{/}'
-};
-template.filter('i18n', function (key, data) {
-  if( data ) {
-    return template(i18n[key.trim()])(data);
-  }
-	return i18n[key.trim()];
+``` js
+
+template.filter('months', function (nMonths) {
+  return nMonths + (nMonths > 1 ? ' meses' : ' mes' );
 });
 
-console.log( template('${ \'months\' | i18n:{ n: 5 } }')() );
+console.log( template('${ nMonths | months }')({ nMonths: 5 }) );
 // returns '5 meses'
-console.log( template('${ \'months\' | i18n:{ n: 1 } }')() );
+console.log( template('${ nMonths | months }')({ nMonths: 1 }) );
 // returns '1 mes'
 ```
 
-### Tests
-[![travis](https://cdn.travis-ci.org/images/favicon-662edf026745110e8203d8cf38d1d325.png)](https://travis-ci.org/kiltjs/trisquel)
-[![Build Status](https://travis-ci.org/kiltjs/trisquel.svg?branch=master)](https://travis-ci.org/kiltjs/trisquel)
-[![Wercker](http://wercker.com/favicon.ico)](https://app.wercker.com/project/bykey/281f306e7157005f0a21b770fbb81086)
-[![wercker status](https://app.wercker.com/status/281f306e7157005f0a21b770fbb81086/s "wercker status")](https://app.wercker.com/project/bykey/281f306e7157005f0a21b770fbb81086)
+``` js
+
+var messages {
+  greeting: template('Hi ${name}!')
+};
+
+template.filter('message', function (key, data) {
+  return messages[key](data);
+});
+
+console.log( template('${ person.last_name }: ${ \'greeting\' | message: { name: person.first_name } }')({
+  person: {
+    first_name: 'John',
+    last_name: 'Smith'
+  }
+}) );
+// returns 'Smith: Hi John!'
+```
+
+#### Tests
+
 ``` sh
 npm test
 ```
+
+[![Build Status](https://travis-ci.org/kiltjs/trisquel.svg?branch=master)](https://travis-ci.org/kiltjs/trisquel) Travis
+
+[![wercker status](https://app.wercker.com/status/281f306e7157005f0a21b770fbb81086/s "wercker status")](https://app.wercker.com/project/bykey/281f306e7157005f0a21b770fbb81086) Wercker
