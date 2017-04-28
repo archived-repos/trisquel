@@ -21,6 +21,7 @@ increase.version:
 	npm version patch
 	git push origin $(shell git rev-parse --abbrev-ref HEAD)
 	npm publish
+	@echo $(shell npm view $(pkg_name) version)
 
 github.release: export RELEASE_URL=$(shell curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${GITHUB_TOKEN}" \
 	-d '{"tag_name": "v$(shell npm view $(pkg_name) version)", "target_commitish": "$(git_branch)", "name": "v$(shell npm view $(pkg_name) version)", "body": "", "draft": false, "prerelease": false}' \
