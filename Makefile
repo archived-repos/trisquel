@@ -17,9 +17,10 @@ build: test
 	$(shell npm bin)/rollup -f umd -n trisquel src/template.js --output dist/trisquel.js
 	$(shell npm bin)/uglifyjs dist/trisquel.js -o dist/trisquel.min.js -c -m
 
-npm.publish: export PKG_VERSION=$(shell npm version patch)
+npm.publish: export PKG_VERSION=$(shell npm version patch && node -e "console.log(require('./package.json').version);")
 npm.publish:
-	git push origin $(git_branch)
+	# git push origin $(git_branch)
+	git push --tags
 	npm publish
 	@echo "published ${PKG_VERSION}"
 
