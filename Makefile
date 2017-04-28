@@ -19,7 +19,7 @@ build: test
 
 npm.publish: export PKG_VERSION=$(shell npm version patch)
 npm.publish:
-	git push origin $(shell git rev-parse --abbrev-ref HEAD)
+	git push origin $(git_branch)
 	npm publish
 	@echo "published ${PKG_VERSION}"
 
