@@ -17,9 +17,11 @@ build: test
 	$(shell npm bin)/rollup -f umd -n trisquel src/template.js --output dist/trisquel.js
 	$(shell npm bin)/uglifyjs dist/trisquel.js -o dist/trisquel.min.js -c -m
 
-increase.version:
+version.patch:
 	npm version patch
 	git push origin $(shell git rev-parse --abbrev-ref HEAD)
+
+npm.publish:
 	npm publish
 	@echo $(shell npm view $(pkg_name) version)
 
@@ -30,4 +32,4 @@ github.release:
 	@echo ${RELEASE_URL}
 	@true
 
-release: build increase.version github.release
+release: build version.patch npm.publish github.release
