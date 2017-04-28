@@ -1,6 +1,6 @@
 {
   "name": "trisquel",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "JS template engine",
   "main": "dist/trisquel.js",
   "repository": {
