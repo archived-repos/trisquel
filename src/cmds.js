@@ -11,14 +11,14 @@ export default {
   '': function (scope, expression) {
     return scope.eval(expression);
   },
-  root: function (scope, expression, content, otherwise) {
+  root: function (scope, expression, content, _otherwise) {
     return content(scope);
   },
   if: function (scope, expression, content, otherwise) {
     return scope.eval(expression) ? content(scope) : otherwise(scope);
   },
-  each: function (scope, expression, content, otherwise) {
-    var values = REeach.exec(expression.trim()), key, n, s;
+  each: function (scope, expression, content, _otherwise) {
+    var values = REeach.exec(expression.trim()), key, i, n, s;
 
     if( !values ) {
       throw new Error('each expression is not correct');
@@ -30,14 +30,14 @@ export default {
         iKey = values[3] || ( items instanceof Array ? '$index' : '$key' );
 
     if( items instanceof Array ) {
-      for( var i = 0, n = items.length ; i < n ; i++ ) {
+      for( i = 0, n = items.length ; i < n ; i++ ) {
         s = scope.new();
         s[iKey] = i;
         s[item] = items[i];
         result += content(s);
       }
     } else {
-      for( var key in items ) {
+      for( key in items ) {
         s = scope.new();
         s[iKey] = key;
         s[item] = items[key];

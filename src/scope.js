@@ -1,6 +1,6 @@
 'use strict';
 
-import evalExpression from './eval'
+import evalExpression from './eval';
 
 // var evalExpression = require('./eval');
 
@@ -35,4 +35,4 @@ Scope.prototype.eval = function ( expression ) {
 
 // module.exports = Scope;
 
-export default Scope
+export default Scope;

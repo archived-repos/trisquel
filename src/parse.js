@@ -1,5 +1,5 @@
 
-import cmds from './cmds'
+import cmds from './cmds';
 
 var REsplit = /\$\w*{[^}]*}|{\/}|{\:}|{else}/,
     REmatch = /\$(\w*){([^}]*)}|{(\/|\:|else)}/g;
@@ -15,7 +15,6 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
   var token = tokens.shift(),
       targets = { $$content: [], $$otherwise: [] },
       target = '$$content',
-      cmdResult,
       resolver = function (scope) {
         return cmds[cmd](scope, expression, function (s) {
           return targets.$$content.map(function (piece) {
@@ -121,6 +120,6 @@ function parse(tmpl){
   return raiseList(list, 'root');
 }
 
-export default parse
+export default parse;
 
 // module.exports = parse;

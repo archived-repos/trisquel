@@ -1,15 +1,15 @@
 
-import Scope from './scope'
-import filters from './filters'
-import parse from './parse'
-import cmds from './cmds'
-import evalExpression from './eval'
+import Scope from './scope';
+import filters from './filters';
+import parse from './parse';
+import cmds from './cmds';
+import evalExpression from './eval';
 
 function compile (tmpl) {
   var render = parse(tmpl);
 
   return function (data) {
-    return render( data instanceof Scope ? data : new Scope(data) )
+    return render( data instanceof Scope ? data : new Scope(data) );
   };
 }
 
@@ -63,4 +63,4 @@ template.cmd('includeEval', function (scope, expression) {
   return tmpl(scope);
 }, true);
 
-export default template
+export default template;

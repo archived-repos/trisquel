@@ -21,16 +21,13 @@
   },
   "homepage": "https://github.com/kiltjs/trisquel",
   "devDependencies": {
+    "eslint": "^3.19.0",
     "mocha": "^3.2.0",
     "rollup": "^0.37.0",
     "uglify-js": "^2.7.5"
   },
   "scripts": {
-    "pretest": "npm install && npm run build",
-    "test": "mocha tests",
-    "build": "rollup -f umd -n trisquel src/template.js --output dist/trisquel.js",
-    "postbuild": "uglifyjs dist/trisquel.js -o dist/trisquel.min.js -c -m",
-    "prepublish": "npm run build"
+    "test": "make test"
   },
   "dependencies": {}
 }
