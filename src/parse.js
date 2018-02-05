@@ -1,22 +1,22 @@
 
-import cmds from './cmds';
+import Scope from './scope';
 
-var REsplit = /\$\w*{[^}]*}|{\/}|{\:}|{else}/,
-    REmatch = /\$(\w*){([^}]*)}|{(\/|\:|else)}/g;
+var REsplit = /\$\w*{[^}]*}|{\/}|{:}|{else}/,
+    REmatch = /\$(\w*){([^}]*)}|{(\/|:|else)}/g;
     // cmds = require('./cmds');
 
-function singleCmd (cmd, expression) {
-  return function (scope) {
-    return cmds[cmd](scope, expression);
-  };
-}
-
-function raiseList (tokens, cmd, expression, waitingForClose) {
+function raiseList (_this, tokens, cmd, expression, waitingForClose) {
   var token = tokens.shift(),
       targets = { $$content: [], $$otherwise: [] },
       target = '$$content',
-      resolver = function (scope) {
-        return cmds[cmd](scope, expression, function (s) {
+      cmds = _this.cmds,
+      singleCmd = function (cmds, cmd, expression) {
+        return function (data) {
+          return cmds[cmd].call(_this, data instanceof Scope ? data : new Scope(data) , expression);
+        };
+      },
+      resolver = function (data) {
+        return cmds[cmd].call(_this, data instanceof Scope ? data : new Scope(data), expression, function (s) {
           return targets.$$content.map(function (piece) {
             return piece instanceof Function ? piece(s) : piece;
           }).join('');
@@ -42,14 +42,14 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
           throw new Error('cmd \'' + token.cmd + '\' is not defined');
         }
 
-        if( cmds[token.cmd].$noContent ) {
-          targets[target].push(singleCmd(token.cmd, token.expression));
+        if( cmds[token.cmd].$no_content ) {
+          targets[target].push(singleCmd(cmds, token.cmd, token.expression));
         } else {
-          targets[target].push( raiseList(tokens, token.cmd, token.expression, true) );
+          targets[target].push( raiseList(_this, tokens, token.cmd, token.expression, true) );
         }
 
       } else {
-        targets[target].push(singleCmd(token.cmd, token.expression));
+        targets[target].push(singleCmd(cmds, token.cmd, token.expression));
       }
 
     } else if( token.expression === ':' || token.expression === 'else' ){
@@ -73,14 +73,13 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
   return resolver;
 }
 
-function parse(tmpl){
-  if( typeof tmpl !== 'string' ) {
-    throw new Error('template should be a string');
-  }
+function parse (tmpl) {
+  if( typeof tmpl !== 'string' ) throw new TypeError('template should be a string');
 
   var i = 0,
       texts = tmpl.split(REsplit),
-      list = [];
+      list = [],
+      cmds = this.cmds;
 
   list[i++] = texts.shift();
 
@@ -117,7 +116,7 @@ function parse(tmpl){
     list[i++] = nextText;
   });
 
-  return raiseList(list, 'root');
+  return raiseList(this, list, 'root');
 }
 
 export default parse;

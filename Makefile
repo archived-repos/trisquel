@@ -9,11 +9,13 @@ install:
 eslint:
 	$(shell npm bin)/eslint src
 
-test: install eslint
+transpile:
+	$(shell npm bin)/rollup -f umd -n trisquel src/trisquel.js --output dist/trisquel.js
+
+test: install eslint transpile
 	$(shell npm bin)/mocha tests
 
 build: test
-	$(shell npm bin)/rollup -f umd -n trisquel src/template.js --output dist/trisquel.js
 	$(shell npm bin)/uglifyjs dist/trisquel.js -o dist/trisquel.min.js -c -m
 
 npm.publish:
