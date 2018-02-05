@@ -10,7 +10,7 @@ eslint:
 	$(shell npm bin)/eslint src
 
 transpile:
-	$(shell npm bin)/rollup -f umd -n trisquel src/template.js --output dist/trisquel.js
+	$(shell npm bin)/rollup -f umd -n trisquel src/trisquel.js --output dist/trisquel.js
 
 test: install eslint transpile
 	$(shell npm bin)/mocha tests

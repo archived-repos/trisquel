@@ -1,21 +1,21 @@
 
 var REeach = /([^,]+)(\s*,\s*([\S]+))? in (\S+)/;
 
-function evalExpression (scope, expression) {
-  return scope.eval(expression);
-}
-
-evalExpression.$no_content = true;
+// function evalExpression (scope, expression) {
+//   return scope.eval(expression);
+// }
+//
+// evalExpression.$no_content = true;
 
 export default {
   '': function (scope, expression) {
-    return scope.eval(expression);
+    return this.eval(expression, scope);
   },
   root: function (scope, expression, content, _otherwise) {
     return content(scope);
   },
   if: function (scope, expression, content, otherwise) {
-    return scope.eval(expression) ? content(scope) : otherwise(scope);
+    return this.eval(expression, scope) ? content(scope) : otherwise(scope);
   },
   each: function (scope, expression, content, _otherwise) {
     var values = REeach.exec(expression.trim()), key, i, n, s;
@@ -26,7 +26,7 @@ export default {
 
     var result = '',
         item = values[1],
-        items = scope.eval(values[4]),
+        items = this.eval(values[4], scope),
         iKey = values[3] || ( items instanceof Array ? '$index' : '$key' );
 
     if( items instanceof Array ) {

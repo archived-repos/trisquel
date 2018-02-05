@@ -15,6 +15,8 @@ describe('Scope', function () {
 		s3.foo = 'changed';
 
 		s3.obj.value = 'dirty';
+
+		s3.float = 'value';
 	});
 
 	describe('testing values', function () {
@@ -41,6 +43,12 @@ describe('Scope', function () {
 
 		it('num', function () {
 			assert.strictEqual(s1.num + s3.num, 6);
+		});
+
+		it('float', function () {
+			assert.strictEqual( s1.float, undefined );
+			assert.strictEqual( s2.float, undefined );
+			assert.strictEqual( s3.float, 'value' );
 		});
 
 	});

@@ -32,19 +32,20 @@ function _mapFilters (filters, parts) {
     }
 
     return function (result, scope) {
-      return filters.get(filter_name).apply(null, [result].concat( args.map(function (arg) {
+      if( !filters[filter_name] ) throw new Error('filter \'' + filter_name + '\' is not defined');
+      return filters[filter_name].apply(null, [result].concat( args.map(function (arg) {
         return scope.eval(arg);
       }) ) );
     };
   });
 }
 
-function _evalExpression (expression) {
+function evalExpression (expression, filters) {
   var parsed = _parseExpression(expression);
 
   var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
 
-  var _filters = _mapFilters(this.filters, parsed.filters);
+  var _filters = filters ? _mapFilters(filters, parsed.filters) : [];
 
   return function (scope) {
     var result = evaluator(scope);
@@ -57,8 +58,8 @@ function _evalExpression (expression) {
   };
 }
 
-function evalExpression (expression, scope) {
-  return scope ? _evalExpression(expression)(scope) : _evalExpression(expression);
-}
+// function evalExpression (expression, scope) {
+//   return scope ? _evalExpression(expression, this.filters || {})(scope) : _evalExpression(expression, this.filters || {});
+// }
 
 export default evalExpression;
