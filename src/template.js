@@ -1,6 +1,5 @@
 
 import Scope from './scope';
-import filters from './filters';
 import parse from './parse';
 import cmds from './cmds';
 import evalExpression from './eval';
@@ -14,38 +13,55 @@ function compile (tmpl) {
 }
 
 function template (tmpl, scope) {
-  return scope ? compile(tmpl)(scope) : compile(tmpl);
+  return scope ? compile.call(template, tmpl)(scope) : compile.call(template, tmpl);
 }
-template.filter = filters;
+
+template.cmds = cmds;
+template.filters = {};
+template.cache = {};
 
 template.eval = evalExpression;
-template.scope = function (data) {
-  return new Scope(data);
+
+template.scope = Scope;
+template.Scope = Scope;
+
+function Template () {
+  this.filters = Object.create(template.filters);
+  this.cmds = Object.create(cmds);
+  this.cache = {};
+}
+template.Template = Template;
+
+var template_funcs = {
+  compile: function (tmpl, scope) {
+    return scope ? compile.call(this, tmpl)(scope) : compile(this, tmpl);
+  },
+  filter: function (filter_name, filterFn) {
+    if( filterFn === undefined ) return this.filters[filter_name];
+    this.filters[filter_name] = filterFn;
+  },
+  cmd: function (name, fn, no_content) {
+    fn.$no_content = no_content;
+    this.cmds[name] = fn;
+  },
+  get: function (template_name) {
+    return this.cache[template_name];
+  },
+  put: function (template_name, template_str) {
+    this.cache[template_name] = this.compile(template_str);
+    return this;
+  },
+  clear: function () {
+    for( var k in this.cache ) {
+      delete this.cache[k];
+    }
+  },
 };
 
-template.cmd = function (name, fn, noContent) {
-  fn.$noContent = noContent;
-  cmds[name] = fn;
-};
-
-var tmplCache = {};
-template.get = function (name) {
-  return tmplCache[name];
-};
-template.put = function (name, tmpl) {
-  if( typeof tmpl !== 'string' ) {
-    throw new Error('template value should be a string');
-  }
-  tmplCache[name] = compile(tmpl);
-  return tmplCache[name];
-};
-
-template.clear = function () {
-  for( var k in tmplCache ) {
-    delete tmplCache[k];
-  }
-  return template;
-};
+for( var fn_name in template_funcs ) {
+  template[fn_name] = template_funcs[fn_name];
+  Template.prototype[fn_name] = template_funcs[fn_name];
+}
 
 template.cmd('include', function (scope, expression) {
   var tmpl = template.get(expression.trim());

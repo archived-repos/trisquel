@@ -5,7 +5,7 @@ function evalExpression (scope, expression) {
   return scope.eval(expression);
 }
 
-evalExpression.$noContent = true;
+evalExpression.$no_content = true;
 
 export default {
   '': function (scope, expression) {

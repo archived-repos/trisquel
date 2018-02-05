@@ -1,8 +1,8 @@
 
 import cmds from './cmds';
 
-var REsplit = /\$\w*{[^}]*}|{\/}|{\:}|{else}/,
-    REmatch = /\$(\w*){([^}]*)}|{(\/|\:|else)}/g;
+var REsplit = /\$\w*{[^}]*}|{\/}|{:}|{else}/,
+    REmatch = /\$(\w*){([^}]*)}|{(\/|:|else)}/g;
     // cmds = require('./cmds');
 
 function singleCmd (cmd, expression) {
@@ -42,7 +42,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
           throw new Error('cmd \'' + token.cmd + '\' is not defined');
         }
 
-        if( cmds[token.cmd].$noContent ) {
+        if( cmds[token.cmd].$no_content ) {
           targets[target].push(singleCmd(token.cmd, token.expression));
         } else {
           targets[target].push( raiseList(tokens, token.cmd, token.expression, true) );
@@ -74,9 +74,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
 }
 
 function parse(tmpl){
-  if( typeof tmpl !== 'string' ) {
-    throw new Error('template should be a string');
-  }
+  if( typeof tmpl !== 'string' ) throw new TypeError('template should be a string');
 
   var i = 0,
       texts = tmpl.split(REsplit),

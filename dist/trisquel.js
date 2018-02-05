@@ -1,80 +1,55 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global.trisquel = factory());
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.trisquel = factory());
 }(this, (function () { 'use strict';
 
-var filtersCache = {};
-
-function filters (name, filterFn) {
-  if( filterFn !== undefined ) {
-    filters.put(name, filterFn);
-  }
-  return filters.get(name);
-}
-
-filters.put = function (name, filterFn) {
-  if( !(filterFn instanceof Function) ) {
-    throw new Error('filter should be a function');
-  }
-  filtersCache[name] = filterFn;
-};
-
-filters.get = function (name) {
-  if ( !filtersCache[name] ) {
-    throw new Error('filter \'' + name + '\' not found');
-  }
-  return filtersCache[name];
-};
-
-filters.map = function (parts) {
-  return parts.map(function (part) {
-    var splitted = part.match(/([^:]+):(.*)/), filterName, args;
-
-    if( splitted ) {
-      filterName = splitted[1].trim();
-      args = [splitted[2]];
-    } else {
-      filterName = part.trim();
-      args = [];
-    }
-
-    return function (result, scope) {
-      return filters.get(filterName).apply(null, [result].concat( args.map(function (arg) {
-        return scope.eval(arg);
-      }) ) );
-    };
-  });
-};
-
-function parseExpression (expression) {
+function _parseExpression (expression) {
   var parts = expression.split('|'),
-      filters$$1 =  [],
+      filters =  [],
       part = parts.shift();
 
   while( part !== undefined ) {
     if( part === '' ) {
-      filters$$1[filters$$1.length - 1] += '||' + parts.shift();
+      filters[filters.length - 1] += '||' + parts.shift();
     } else {
-      filters$$1.push(part);
+      filters.push(part);
     }
     part = parts.shift();
   }
 
   return {
-    expression: filters$$1.shift(),
-    filters: filters$$1
+    expression: filters.shift(),
+    filters: filters
   };
 }
 
-function evalExpression (expression) {
-  var parsed = parseExpression(expression);
+function _mapFilters (filters, parts) {
+  return parts.map(function (part) {
+    var splitted = part.match(/([^:]+):(.*)/), filter_name, args;
 
-  /* jshint ignore:start */
+    if( splitted ) {
+      filter_name = splitted[1].trim();
+      args = [splitted[2]];
+    } else {
+      filter_name = part.trim();
+      args = [];
+    }
+
+    return function (result, scope) {
+      return filters.get(filter_name).apply(null, [result].concat( args.map(function (arg) {
+        return scope.eval(arg);
+      }) ) );
+    };
+  });
+}
+
+function _evalExpression (expression) {
+  var parsed = _parseExpression(expression);
+
   var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
-  /* jshint ignore:end */
 
-  var _filters = filters.map(parsed.filters);
+  var _filters = _mapFilters(this.filters, parsed.filters);
 
   return function (scope) {
     var result = evaluator(scope);
@@ -87,35 +62,35 @@ function evalExpression (expression) {
   };
 }
 
+function evalExpression (expression, scope) {
+  return scope ? _evalExpression(expression)(scope) : _evalExpression(expression);
+}
+
 // var evalExpression = require('./eval');
 
-var Scope = function (data) {
-		if(!this) {
-			return new Scope(data);
-		}
+function Scope (data) {
+	if( !(this instanceof Scope) ) return new Scope(data);
 
-    if( data instanceof Object ) {
-        this.extend(data);
-    }
-};
+  if( data instanceof Object ) {
+    this.extend(data);
+  }
+}
 
 Scope.prototype.new = function(data) {
-    var S = function () {
-        this.extend(data);
-    };
-    S.prototype = this;
-    return new S(data);
+	var child = Object.create(this);
+	if( data instanceof Object ) child.extend(data);
+  return child;
 };
 
 Scope.prototype.extend = function(data) {
-    for( var key in data ) {
-        this[key] = data[key];
-    }
-    return this;
+  for( var key in data ) {
+    this[key] = data[key];
+  }
+  return this;
 };
 
 Scope.prototype.eval = function ( expression ) {
-    return evalExpression(expression)(this);
+  return evalExpression(expression)(this);
 };
 
 var REeach = /([^,]+)(\s*,\s*([\S]+))? in (\S+)/;
@@ -162,8 +137,8 @@ var cmds = {
   }
 };
 
-var REsplit = /\$\w*{[^}]*}|{\/}|{\:}|{else}/;
-var REmatch = /\$(\w*){([^}]*)}|{(\/|\:|else)}/g;
+var REsplit = /\$\w*{[^}]*}|{\/}|{:}|{else}/;
+var REmatch = /\$(\w*){([^}]*)}|{(\/|:|else)}/g;
     // cmds = require('./cmds');
 
 function singleCmd (cmd, expression) {
@@ -203,7 +178,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
           throw new Error('cmd \'' + token.cmd + '\' is not defined');
         }
 
-        if( cmds[token.cmd].$noContent ) {
+        if( cmds[token.cmd].$no_content ) {
           targets[target].push(singleCmd(token.cmd, token.expression));
         } else {
           targets[target].push( raiseList(tokens, token.cmd, token.expression, true) );
@@ -235,9 +210,7 @@ function raiseList (tokens, cmd, expression, waitingForClose) {
 }
 
 function parse(tmpl){
-  if( typeof tmpl !== 'string' ) {
-    throw new Error('template should be a string');
-  }
+  if( typeof tmpl !== 'string' ) throw new TypeError('template should be a string');
 
   var i = 0,
       texts = tmpl.split(REsplit),
@@ -294,38 +267,55 @@ function compile (tmpl) {
 }
 
 function template (tmpl, scope) {
-  return scope ? compile(tmpl)(scope) : compile(tmpl);
+  return scope ? compile.call(template, tmpl)(scope) : compile.call(template, tmpl);
 }
-template.filter = filters;
+
+template.cmds = cmds;
+template.filters = {};
+template.cache = {};
 
 template.eval = evalExpression;
-template.scope = function (data) {
-  return new Scope(data);
+
+template.scope = Scope;
+template.Scope = Scope;
+
+function Template () {
+  this.filters = Object.create(template.filters);
+  this.cmds = Object.create(cmds);
+  this.cache = {};
+}
+template.Template = Template;
+
+var template_funcs = {
+  compile: function (tmpl, scope) {
+    return scope ? compile.call(this, tmpl)(scope) : compile(this, tmpl);
+  },
+  filter: function (filter_name, filterFn) {
+    if( filterFn === undefined ) return this.filters[filter_name];
+    this.filters[filter_name] = filterFn;
+  },
+  cmd: function (name, fn, no_content) {
+    fn.$no_content = no_content;
+    this.cmds[name] = fn;
+  },
+  get: function (template_name) {
+    return this.cache[template_name];
+  },
+  put: function (template_name, template_str) {
+    this.cache[template_name] = this.compile(template_str);
+    return this;
+  },
+  clear: function () {
+    for( var k in this.cache ) {
+      delete this.cache[k];
+    }
+  },
 };
 
-template.cmd = function (name, fn, noContent) {
-  fn.$noContent = noContent;
-  cmds[name] = fn;
-};
-
-var tmplCache = {};
-template.get = function (name) {
-  return tmplCache[name];
-};
-template.put = function (name, tmpl) {
-  if( typeof tmpl !== 'string' ) {
-    throw new Error('template value should be a string');
-  }
-  tmplCache[name] = compile(tmpl);
-  return tmplCache[name];
-};
-
-template.clear = function () {
-  for( var k in tmplCache ) {
-    delete tmplCache[k];
-  }
-  return template;
-};
+for( var fn_name in template_funcs ) {
+  template[fn_name] = template_funcs[fn_name];
+  Template.prototype[fn_name] = template_funcs[fn_name];
+}
 
 template.cmd('include', function (scope, expression) {
   var tmpl = template.get(expression.trim());

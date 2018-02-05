@@ -1,7 +1,5 @@
 
-import filters from './filters';
-
-function parseExpression (expression) {
+function _parseExpression (expression) {
   var parts = expression.split('|'),
       filters =  [],
       part = parts.shift();
@@ -21,14 +19,32 @@ function parseExpression (expression) {
   };
 }
 
-function evalExpression (expression) {
-  var parsed = parseExpression(expression);
+function _mapFilters (filters, parts) {
+  return parts.map(function (part) {
+    var splitted = part.match(/([^:]+):(.*)/), filter_name, args;
 
-  /* jshint ignore:start */
+    if( splitted ) {
+      filter_name = splitted[1].trim();
+      args = [splitted[2]];
+    } else {
+      filter_name = part.trim();
+      args = [];
+    }
+
+    return function (result, scope) {
+      return filters.get(filter_name).apply(null, [result].concat( args.map(function (arg) {
+        return scope.eval(arg);
+      }) ) );
+    };
+  });
+}
+
+function _evalExpression (expression) {
+  var parsed = _parseExpression(expression);
+
   var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
-  /* jshint ignore:end */
 
-  var _filters = filters.map(parsed.filters);
+  var _filters = _mapFilters(this.filters, parsed.filters);
 
   return function (scope) {
     var result = evaluator(scope);
@@ -39,6 +55,10 @@ function evalExpression (expression) {
 
     return result;
   };
+}
+
+function evalExpression (expression, scope) {
+  return scope ? _evalExpression(expression)(scope) : _evalExpression(expression);
 }
 
 export default evalExpression;

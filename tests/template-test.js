@@ -1,3 +1,4 @@
+/* global describe, it, beforeEach */
 
 var assert = require('assert'), data,
 		$template = require('../dist/trisquel'),
@@ -59,26 +60,26 @@ beforeEach(function () {
 
 describe('basic replace', function () {
 
-	it("should replace value", function() {
+	it('should replace value', function() {
 		assert.strictEqual(
 			$template( 'value: ${foo}')(data),
 			'value: bar' );
   });
 
-	it("should return if", function() {
-		assert.strictEqual( $template('$if{ foo === "bar" }$i18n{ok}{:}$i18n{ok}{/}')(data), i18n.ok );
+	it('should return if', function() {
+		assert.strictEqual( $template('$if{ foo === \'bar\' }$i18n{ok}{:}$i18n{ok}{/}')(data), i18n.ok );
   });
 
-  it("should return if (2)", function() {
+  it('should return if (2)', function() {
 		assert.strictEqual( $template('$if{ !fails }$i18n{ok}{/}')(data), i18n.ok );
   });
 
-	it("should return otherwise", function() {
-		assert.strictEqual( $template('$if{ foo !== "bar" }$i18n{ok}{:}$i18n{ko}{/}')(data), i18n.ko );
+	it('should return otherwise', function() {
+		assert.strictEqual( $template('$if{ foo !== \'bar\' }$i18n{ok}{:}$i18n{ko}{/}')(data), i18n.ko );
   });
 
-	it("should return otherwise (2)", function() {
-		assert.strictEqual( $template('$if{ foo !== "bar" }$i18n{ok}{:}{/}')(data), '' );
+	it('should return otherwise (2)', function() {
+		assert.strictEqual( $template('$if{ foo !== \'bar\' }$i18n{ok}{:}{/}')(data), '' );
   });
 
 });
@@ -86,11 +87,11 @@ describe('basic replace', function () {
 
 describe('include', function () {
 
-	it("should use sample partial", function() {
+	it('should use sample partial', function() {
 		assert.strictEqual( samplePartial(data), 'value: bar' );
   });
 
-	it("should include sample partial", function() {
+	it('should include sample partial', function() {
 		assert.strictEqual( $template('$include{ sample }')(data), 'value: bar' );
   });
 
@@ -98,12 +99,12 @@ describe('include', function () {
 
 describe('includeEval', function () {
 
-	it("should return if sample as string", function() {
-		assert.strictEqual( $template('$if{ foo === "bar" }$includeEval{\'sample\'}{:}$i18n{ko}{/}')(data), 'value: bar' );
+	it('should return if sample as string', function() {
+		assert.strictEqual( $template('$if{ foo === \'bar\' }$includeEval{\'sample\'}{:}$i18n{ko}{/}')(data), 'value: bar' );
   });
 
-	it("should return if sample as string", function() {
-		assert.strictEqual( $template('$if{ foo === "bar" }$includeEval{ template }{:}$i18n{ko}{/}')(data), 'value: bar' );
+	it('should return if sample as string', function() {
+		assert.strictEqual( $template('$if{ foo === \'bar\' }$includeEval{ template }{:}$i18n{ko}{/}')(data), 'value: bar' );
   });
 
 });
@@ -111,31 +112,31 @@ describe('includeEval', function () {
 
 describe('each command', function () {
 
-	it("should return list", function() {
+	it('should return list', function() {
 		assert.strictEqual( $template('$each{ item in list },${item}{/}')(data), ',foo,bar,foobar');
   });
 
-	it("should return list with index", function() {
+	it('should return list with index', function() {
 		assert.strictEqual(  $template('$each{ item in list }[${$index}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
   });
 
-	it("should return list with index", function() {
+	it('should return list with index', function() {
 		assert.strictEqual(  $template('$each{ item,key in list }[${key}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
   });
 
-	it("should return list with inheritance", function() {
+	it('should return list with inheritance', function() {
 		assert.strictEqual(  $template('$each{ item in list }[${ foo }:${ item }]{/}')(data), '[bar:foo][bar:bar][bar:foobar]');
   });
 
-	it("should return map", function() {
+	it('should return map', function() {
 		assert.strictEqual(  $template('$each{ item in map }[${ $key }:${ item }]{/}')(data), '[hi:all][bye:nobody]');
   });
 
-	it("should return map with key", function() {
+	it('should return map with key', function() {
 		assert.strictEqual(  $template('$each{ item, key in map }[${key}:${item}]{/}')(data), '[hi:all][bye:nobody]');
   });
 
-	it("should return map with key and inheritance", function() {
+	it('should return map with key and inheritance', function() {
 		assert.strictEqual(  $template('$each{ item, key in map }[${foo}:${key}:${item}]{/}')(data), '[bar:hi:all][bar:bye:nobody]');
   });
 
@@ -143,7 +144,7 @@ describe('each command', function () {
 
 describe('custom commands', function () {
 
-	it("should add new command", function() {
+	it('should add new command', function() {
 		$template.cmd('double', function (scope, expression) {
 			return Number(scope.eval(expression))*2;
 		}, true);
@@ -151,33 +152,33 @@ describe('custom commands', function () {
 		assert.strictEqual(  $template('$double{4}')(data), '8');
   });
 
-	it("should use custom i18n command (helper)", function() {
+	it('should use custom i18n command (helper)', function() {
 		assert.strictEqual(  $template('$i18n{cancel}')(data), 'Cancel');
   });
 
-	it("should use custom i18n command (helper) inside a condition", function() {
-		assert.strictEqual(  $template('$if{ foo === "bar" }$i18n{cancel}{:}$i18n{accept}{/}, done!')(data), 'Cancel, done!');
+	it('should use custom i18n command (helper) inside a condition', function() {
+		assert.strictEqual(  $template('$if{ foo === \'bar\' }$i18n{cancel}{:}$i18n{accept}{/}, done!')(data), 'Cancel, done!');
   });
 
 });
 
 describe('filters', function () {
 
-	it("filter i18n", function() {
+	it('filter i18n', function() {
 		assert.strictEqual(  $template('${ \'cancel\' | i18n }')({}), 'Cancel');
   });
 
-  it("should use custom i18n command with scope", function() {
+  it('should use custom i18n command with scope', function() {
 		assert.strictEqual(  $template('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
 		assert.strictEqual(  $template('$i18n{ months:{ n: 1 } }')(), '1 mes');
   });
 
-  it("should use custom i18n command with scope should fail", function() {
+  it('should use custom i18n command with scope should fail', function() {
 		assert.strictEqual(  $template('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
 		assert.strictEqual(  $template('$i18n{ months:{ n: 1 } }')(), '1 mes');
 
 		assert.throws(function () {
-			$template('$i18n{ months:{ n: 1 } ')()
+			$template('$i18n{ months:{ n: 1 } ')();
 		}, /expression curly brackets mismatch/, 'did not throw with expected message');
   });
 
@@ -185,15 +186,15 @@ describe('filters', function () {
 
 describe('filters in conditional expression', function () {
 
-  it("if [or]", function() {
+  it('if [or]', function() {
 		assert.strictEqual( $template('$if{ true || false }gogogo{/}')(), 'gogogo');
   });
 
-  it("if [or] filter (wenn)", function() {
+  it('if [or] filter (wenn)', function() {
 		assert.strictEqual( $template('${ true || false | deutsche }')(), 'wenn');
   });
 
-  it("if [or] filter (keine)", function() {
+  it('if [or] filter (keine)', function() {
 		assert.strictEqual( $template('${ false || false | deutsche }')(), 'keine');
   });
 
