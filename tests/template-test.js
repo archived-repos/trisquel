@@ -1,8 +1,8 @@
 /* global describe, it, beforeEach */
 
 var assert = require('assert'), data,
-		$template = require('../dist/trisquel'),
-		samplePartial = $template.put('sample', 'value: ${ foo }'),
+		trisquel = require('../dist/trisquel'),
+		samplePartial = trisquel.put('sample', 'value: ${ foo }'),
 		i18n = {
 			cancel: 'Cancel',
 			accept: 'Accept',
@@ -11,7 +11,7 @@ var assert = require('assert'), data,
 			ko: 'whoops'
 		};
 
-$template.cmd('i18n', function (scope, expression) {
+trisquel.cmd('i18n', function (scope, expression) {
 		var splitted = expression.match(/([^:]*):(.*)/), locale, scopeExp;
 
 		if( splitted ) {
@@ -26,16 +26,16 @@ $template.cmd('i18n', function (scope, expression) {
 		}
 
 		if( scopeExp ) {
-			return $template(locale)(scope.eval(scopeExp));
+			return trisquel(locale)(scope.eval(scopeExp));
 		}
 		return locale;
 	}, true);
 
-$template.filter('i18n', function (key) {
+trisquel.filter('i18n', function (key) {
 	return i18n[key];
 });
 
-$template.filter('deutsche', function (wenn) {
+trisquel.filter('deutsche', function (wenn) {
 	return wenn ? 'wenn' : 'keine';
 });
 
@@ -62,24 +62,24 @@ describe('basic replace', function () {
 
 	it('should replace value', function() {
 		assert.strictEqual(
-			$template( 'value: ${foo}')(data),
+			trisquel( 'value: ${foo}')(data),
 			'value: bar' );
   });
 
 	it('should return if', function() {
-		assert.strictEqual( $template('$if{ foo === \'bar\' }$i18n{ok}{:}$i18n{ok}{/}')(data), i18n.ok );
+		assert.strictEqual( trisquel('$if{ foo === \'bar\' }$i18n{ok}{:}$i18n{ok}{/}')(data), i18n.ok );
   });
 
   it('should return if (2)', function() {
-		assert.strictEqual( $template('$if{ !fails }$i18n{ok}{/}')(data), i18n.ok );
+		assert.strictEqual( trisquel('$if{ !fails }$i18n{ok}{/}')(data), i18n.ok );
   });
 
 	it('should return otherwise', function() {
-		assert.strictEqual( $template('$if{ foo !== \'bar\' }$i18n{ok}{:}$i18n{ko}{/}')(data), i18n.ko );
+		assert.strictEqual( trisquel('$if{ foo !== \'bar\' }$i18n{ok}{:}$i18n{ko}{/}')(data), i18n.ko );
   });
 
 	it('should return otherwise (2)', function() {
-		assert.strictEqual( $template('$if{ foo !== \'bar\' }$i18n{ok}{:}{/}')(data), '' );
+		assert.strictEqual( trisquel('$if{ foo !== \'bar\' }$i18n{ok}{:}{/}')(data), '' );
   });
 
 });
@@ -92,7 +92,7 @@ describe('include', function () {
   });
 
 	it('should include sample partial', function() {
-		assert.strictEqual( $template('$include{ sample }')(data), 'value: bar' );
+		assert.strictEqual( trisquel('$include{ sample }')(data), 'value: bar' );
   });
 
 });
@@ -100,11 +100,11 @@ describe('include', function () {
 describe('includeEval', function () {
 
 	it('should return if sample as string', function() {
-		assert.strictEqual( $template('$if{ foo === \'bar\' }$includeEval{\'sample\'}{:}$i18n{ko}{/}')(data), 'value: bar' );
+		assert.strictEqual( trisquel('$if{ foo === \'bar\' }$includeEval{\'sample\'}{:}$i18n{ko}{/}')(data), 'value: bar' );
   });
 
 	it('should return if sample as string', function() {
-		assert.strictEqual( $template('$if{ foo === \'bar\' }$includeEval{ template }{:}$i18n{ko}{/}')(data), 'value: bar' );
+		assert.strictEqual( trisquel('$if{ foo === \'bar\' }$includeEval{ template }{:}$i18n{ko}{/}')(data), 'value: bar' );
   });
 
 });
@@ -113,31 +113,31 @@ describe('includeEval', function () {
 describe('each command', function () {
 
 	it('should return list', function() {
-		assert.strictEqual( $template('$each{ item in list },${item}{/}')(data), ',foo,bar,foobar');
+		assert.strictEqual( trisquel('$each{ item in list },${item}{/}')(data), ',foo,bar,foobar');
   });
 
 	it('should return list with index', function() {
-		assert.strictEqual(  $template('$each{ item in list }[${$index}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
+		assert.strictEqual(  trisquel('$each{ item in list }[${$index}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
   });
 
 	it('should return list with index', function() {
-		assert.strictEqual(  $template('$each{ item,key in list }[${key}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
+		assert.strictEqual(  trisquel('$each{ item,key in list }[${key}:${item}]{/}')(data), '[0:foo][1:bar][2:foobar]');
   });
 
 	it('should return list with inheritance', function() {
-		assert.strictEqual(  $template('$each{ item in list }[${ foo }:${ item }]{/}')(data), '[bar:foo][bar:bar][bar:foobar]');
+		assert.strictEqual(  trisquel('$each{ item in list }[${ foo }:${ item }]{/}')(data), '[bar:foo][bar:bar][bar:foobar]');
   });
 
 	it('should return map', function() {
-		assert.strictEqual(  $template('$each{ item in map }[${ $key }:${ item }]{/}')(data), '[hi:all][bye:nobody]');
+		assert.strictEqual(  trisquel('$each{ item in map }[${ $key }:${ item }]{/}')(data), '[hi:all][bye:nobody]');
   });
 
 	it('should return map with key', function() {
-		assert.strictEqual(  $template('$each{ item, key in map }[${key}:${item}]{/}')(data), '[hi:all][bye:nobody]');
+		assert.strictEqual(  trisquel('$each{ item, key in map }[${key}:${item}]{/}')(data), '[hi:all][bye:nobody]');
   });
 
 	it('should return map with key and inheritance', function() {
-		assert.strictEqual(  $template('$each{ item, key in map }[${foo}:${key}:${item}]{/}')(data), '[bar:hi:all][bar:bye:nobody]');
+		assert.strictEqual(  trisquel('$each{ item, key in map }[${foo}:${key}:${item}]{/}')(data), '[bar:hi:all][bar:bye:nobody]');
   });
 
 });
@@ -145,19 +145,19 @@ describe('each command', function () {
 describe('custom commands', function () {
 
 	it('should add new command', function() {
-		$template.cmd('double', function (scope, expression) {
+		trisquel.cmd('double', function (scope, expression) {
 			return Number(scope.eval(expression))*2;
 		}, true);
 
-		assert.strictEqual(  $template('$double{4}')(data), '8');
+		assert.strictEqual(  trisquel('$double{4}')(data), '8');
   });
 
 	it('should use custom i18n command (helper)', function() {
-		assert.strictEqual(  $template('$i18n{cancel}')(data), 'Cancel');
+		assert.strictEqual(  trisquel('$i18n{cancel}')(data), 'Cancel');
   });
 
 	it('should use custom i18n command (helper) inside a condition', function() {
-		assert.strictEqual(  $template('$if{ foo === \'bar\' }$i18n{cancel}{:}$i18n{accept}{/}, done!')(data), 'Cancel, done!');
+		assert.strictEqual(  trisquel('$if{ foo === \'bar\' }$i18n{cancel}{:}$i18n{accept}{/}, done!')(data), 'Cancel, done!');
   });
 
 });
@@ -165,20 +165,20 @@ describe('custom commands', function () {
 describe('filters', function () {
 
 	it('filter i18n', function() {
-		assert.strictEqual(  $template('${ \'cancel\' | i18n }')({}), 'Cancel');
+		assert.strictEqual(  trisquel('${ \'cancel\' | i18n }')({}), 'Cancel');
   });
 
   it('should use custom i18n command with scope', function() {
-		assert.strictEqual(  $template('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
-		assert.strictEqual(  $template('$i18n{ months:{ n: 1 } }')(), '1 mes');
+		assert.strictEqual(  trisquel('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
+		assert.strictEqual(  trisquel('$i18n{ months:{ n: 1 } }')(), '1 mes');
   });
 
   it('should use custom i18n command with scope should fail', function() {
-		assert.strictEqual(  $template('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
-		assert.strictEqual(  $template('$i18n{ months:{ n: 1 } }')(), '1 mes');
+		assert.strictEqual(  trisquel('$i18n{ months:{ n: 5, i: { foo: \'bar\' } } }')(), '5 meses');
+		assert.strictEqual(  trisquel('$i18n{ months:{ n: 1 } }')(), '1 mes');
 
 		assert.throws(function () {
-			$template('$i18n{ months:{ n: 1 } ')();
+			trisquel('$i18n{ months:{ n: 1 } ')();
 		}, /expression curly brackets mismatch/, 'did not throw with expected message');
   });
 
@@ -187,15 +187,15 @@ describe('filters', function () {
 describe('filters in conditional expression', function () {
 
   it('if [or]', function() {
-		assert.strictEqual( $template('$if{ true || false }gogogo{/}')(), 'gogogo');
+		assert.strictEqual( trisquel('$if{ true || false }gogogo{/}')(), 'gogogo');
   });
 
   it('if [or] filter (wenn)', function() {
-		assert.strictEqual( $template('${ true || false | deutsche }')(), 'wenn');
+		assert.strictEqual( trisquel('${ true || false | deutsche }')(), 'wenn');
   });
 
   it('if [or] filter (keine)', function() {
-		assert.strictEqual( $template('${ false || false | deutsche }')(), 'keine');
+		assert.strictEqual( trisquel('${ false || false | deutsche }')(), 'keine');
   });
 
 });

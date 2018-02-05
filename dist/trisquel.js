@@ -258,38 +258,34 @@ function parse(tmpl){
 
 // module.exports = parse;
 
-function compile (tmpl) {
-  var render = parse(tmpl);
-
-  return function (data) {
-    return render( data instanceof Scope ? data : new Scope(data) );
-  };
+function trisquel (tmpl, data) {
+  return data ? parse.call(this, tmpl)( data instanceof Scope ? data : new Scope(data) ) : parse.call(this, tmpl);
 }
 
-function template (tmpl, scope) {
-  return scope ? compile.call(template, tmpl)(scope) : compile.call(template, tmpl);
+trisquel.cmds = cmds;
+trisquel.filters = {};
+trisquel.cache = {};
+
+trisquel.eval = evalExpression;
+
+trisquel.scope = Scope;
+trisquel.Scope = Scope;
+
+function Template (inherit_globals) {
+  if( inherit_globals || inherit_globals === undefined ) {
+    this.filters = Object.create(trisquel.filters);
+    this.cmds = Object.create(trisquel.cmds);
+    this.cache = Object.create(trisquel.cache);
+  } else {
+    this.filters = {};
+    this.cmds = {};
+    this.cache = {};
+  }
 }
-
-template.cmds = cmds;
-template.filters = {};
-template.cache = {};
-
-template.eval = evalExpression;
-
-template.scope = Scope;
-template.Scope = Scope;
-
-function Template () {
-  this.filters = Object.create(template.filters);
-  this.cmds = Object.create(cmds);
-  this.cache = {};
-}
-template.Template = Template;
+trisquel.Template = Template;
 
 var template_funcs = {
-  compile: function (tmpl, scope) {
-    return scope ? compile.call(this, tmpl)(scope) : compile(this, tmpl);
-  },
+  compile: trisquel,
   filter: function (filter_name, filterFn) {
     if( filterFn === undefined ) return this.filters[filter_name];
     this.filters[filter_name] = filterFn;
@@ -313,26 +309,26 @@ var template_funcs = {
 };
 
 for( var fn_name in template_funcs ) {
-  template[fn_name] = template_funcs[fn_name];
+  trisquel[fn_name] = template_funcs[fn_name];
   Template.prototype[fn_name] = template_funcs[fn_name];
 }
 
-template.cmd('include', function (scope, expression) {
-  var tmpl = template.get(expression.trim());
+trisquel.cmd('include', function (scope, expression) {
+  var tmpl = this.get(expression.trim());
   if( !tmpl ) {
     throw new Error('can not include template: \'' + scope.eval(expression) + '\' ( expression: ' + expression + ' )');
   }
   return tmpl(scope);
 }, true);
 
-template.cmd('includeEval', function (scope, expression) {
-  var tmpl = template.get(scope.eval(expression));
+trisquel.cmd('includeEval', function (scope, expression) {
+  var tmpl = this.get(scope.eval(expression));
   if( !tmpl ) {
     throw new Error('can not include template: \'' + scope.eval(expression) + '\' ( expression: ' + expression + ' )');
   }
   return tmpl(scope);
 }, true);
 
-return template;
+return trisquel;
 
 })));
