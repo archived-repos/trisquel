@@ -38,7 +38,7 @@ function _mapFilters (filters, parts) {
 
     return function (result, scope) {
       if( !filters[filter_name] ) throw new Error('filter \'' + filter_name + '\' is not defined');
-      return filters[filter_name].apply(null, [result].concat( args.map(function (arg) {
+      return filters[filter_name].apply(scope, [result].concat( args.map(function (arg) {
         return scope.eval(arg);
       }) ) );
     };
