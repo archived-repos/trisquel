@@ -21,8 +21,14 @@ trisquel.filter('deutsche', function (wenn) {
 describe('filters', function () {
   describe('i18n', function () {
 
-    it('filter i18n', function() {
-      assert.strictEqual(  trisquel('${ \'cancel\' | i18n }')({}), 'Cancel');
+    var scope = new trisquel.Scope();
+
+    it('filter scope', function() {
+      trisquel.filter('scope', function (foo) {
+        assert.strictEqual(scope, this);
+        return foo + 'bar';
+      });
+      assert.strictEqual(  trisquel('${ \'foo\' | scope }')(scope), 'foobar');
     });
 
     it('should use custom i18n command with scope', function() {
