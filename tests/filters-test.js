@@ -19,6 +19,7 @@ trisquel.filter('deutsche', function (wenn) {
 });
 
 describe('filters', function () {
+  
   describe('i18n', function () {
 
     var scope = new trisquel.Scope();

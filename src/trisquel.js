@@ -2,7 +2,7 @@
 import Scope from './scope';
 import parse from './parse';
 import cmds from './cmds';
-import evalExpression from './eval';
+import {evalExpression} from './eval';
 
 function compile (tmpl, data) {
   return data ? parse.call(this, tmpl)(data) : parse.call(this, tmpl);
@@ -19,7 +19,7 @@ trisquel.cache = {};
 trisquel.scope = Scope;
 trisquel.Scope = Scope;
 
-function Template (inherit_globals) {
+function Trisquel (inherit_globals) {
   if( inherit_globals || inherit_globals === undefined ) {
     this.cmds = Object.create(trisquel.cmds);
     this.filters = Object.create(trisquel.filters);
@@ -30,12 +30,13 @@ function Template (inherit_globals) {
     this.cache = {};
   }
 }
-trisquel.Template = Template;
+trisquel.Trisquel = Trisquel;
 
 var template_funcs = {
   compile: compile,
-  eval: function (expression, scope) {
-    return evalExpression(expression, this.filters)(scope);
+  eval: function (expression, scope, processExpression) {
+    if( scope ) return evalExpression(expression, this.filters)(scope, processExpression);
+    return evalExpression(expression, this.filters);
   },
   filter: function (filter_name, filterFn) {
     if( filterFn === undefined ) return this.filters[filter_name];
@@ -61,7 +62,7 @@ var template_funcs = {
 
 for( var fn_name in template_funcs ) {
   trisquel[fn_name] = template_funcs[fn_name];
-  Template.prototype[fn_name] = template_funcs[fn_name];
+  Trisquel.prototype[fn_name] = template_funcs[fn_name];
 }
 
 trisquel.cmd('include', function (scope, expression) {

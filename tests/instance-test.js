@@ -2,7 +2,7 @@
 
 var assert = require('assert'), data,
     trisquel = require('../dist/trisquel'),
-    instance = new trisquel.Template(false),
+    instance = new trisquel.Trisquel(false),
     // samplePartial = trisquel.put('sample', 'value: ${ foo }'),
     locales = {
       cancel: 'Cancel',
@@ -13,23 +13,23 @@ var assert = require('assert'), data,
     };
 
 instance.cmd('message', function (scope, expression) {
-    var splitted = expression.match(/([^:]*):(.*)/), locale, scopeExp;
+  var splitted = expression.match(/([^:]*):(.*)/), locale, scopeExp;
 
-    if( splitted ) {
-      locale = locales[splitted[1].trim()];
-      scopeExp = splitted[2];
-    } else {
-      locale = locales[expression.trim()];
-    }
+  if( splitted ) {
+    locale = locales[splitted[1].trim()];
+    scopeExp = splitted[2];
+  } else {
+    locale = locales[expression.trim()];
+  }
 
-    if( typeof locale !== 'string' ) {
-      return '{! ' + splitted[0].trim() + ' }';
-    }
+  if( typeof locale !== 'string' ) {
+    return '{! ' + splitted[0].trim() + ' }';
+  }
 
-    if( scopeExp ) return trisquel(locale)(this.eval(scopeExp, scope));
+  if( scopeExp ) return trisquel(locale)(this.eval(scopeExp, scope));
 
-    return locale;
-  }, true);
+  return locale;
+}, true);
 
 instance.filter('message', function (key) {
   return locales[key];

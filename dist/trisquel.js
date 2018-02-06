@@ -4,27 +4,16 @@
   (global.trisquel = factory());
 }(this, (function () { 'use strict';
 
-function _parseExpression (expression) {
-  var parts = expression.split('|'),
-      filters =  [],
-      part = parts.shift();
+function pipeResult (process_map, result, scope) {
 
-  while( part !== undefined ) {
-    if( part === '' ) {
-      filters[filters.length - 1] += '||' + parts.shift();
-    } else {
-      filters.push(part);
-    }
-    part = parts.shift();
+  for( var i = 0, n = process_map.length ; i < n ; i++ ) {
+    result = process_map[i](result, scope);
   }
 
-  return {
-    expression: filters.shift(),
-    filters: filters
-  };
+  return result;
 }
 
-function _mapFilters (filters, parts) {
+function mapFilters (filters, parts) {
   return parts.map(function (part) {
     var splitted = part.match(/([^:]+):(.*)/), filter_name, args;
 
@@ -45,25 +34,37 @@ function _mapFilters (filters, parts) {
   });
 }
 
-function evalExpression (expression, filters) {
-  var parsed = _parseExpression(expression);
+function parseExpression (expression) {
+  var parts = expression.split(/ *\| */),
+      filters =  [],
+      part = parts.shift();
 
-  var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
-
-  var _filters = filters ? _mapFilters(filters, parsed.filters) : [];
-
-  return function (scope) {
-    var result = evaluator(scope);
-
-    for( var i = 0, n = _filters.length ; i < n ; i++ ) {
-      result = _filters[i](result, scope);
+  while( part !== undefined ) {
+    if( part === '' ) {
+      filters[filters.length - 1] += '||' + parts.shift();
+    } else {
+      filters.push(part);
     }
+    part = parts.shift();
+  }
 
-    return result;
+  return {
+    expression: filters.shift().trim(),
+    filters: filters,
   };
 }
 
-// var evalExpression = require('./eval');
+function evalExpression (expression, filters) {
+  var parsed = parseExpression(expression);
+
+  var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
+
+  var filters_map = filters ? mapFilters(filters, parsed.filters) : [];
+
+  return function (scope, processExpression) {
+    return pipeResult(filters_map, processExpression ? processExpression.call(scope, parsed.expression, scope) : evaluator(scope), scope );
+  };
+}
 
 function Scope (data) {
 	if( !(this instanceof Scope) ) return new Scope(data);
@@ -214,12 +215,6 @@ function parse (tmpl) {
 
 var REeach = /([^,]+)(\s*,\s*([\S]+))? in (\S+)/;
 
-// function evalExpression (scope, expression) {
-//   return scope.eval(expression);
-// }
-//
-// evalExpression.$no_content = true;
-
 var cmds = {
   '': function (scope, expression) {
     return this.eval(expression, scope);
@@ -277,7 +272,7 @@ trisquel.cache = {};
 trisquel.scope = Scope;
 trisquel.Scope = Scope;
 
-function Template (inherit_globals) {
+function Trisquel (inherit_globals) {
   if( inherit_globals || inherit_globals === undefined ) {
     this.cmds = Object.create(trisquel.cmds);
     this.filters = Object.create(trisquel.filters);
@@ -288,12 +283,13 @@ function Template (inherit_globals) {
     this.cache = {};
   }
 }
-trisquel.Template = Template;
+trisquel.Trisquel = Trisquel;
 
 var template_funcs = {
   compile: compile,
-  eval: function (expression, scope) {
-    return evalExpression(expression, this.filters)(scope);
+  eval: function (expression, scope, processExpression) {
+    if( scope ) return evalExpression(expression, this.filters)(scope, processExpression);
+    return evalExpression(expression, this.filters);
   },
   filter: function (filter_name, filterFn) {
     if( filterFn === undefined ) return this.filters[filter_name];
@@ -319,7 +315,7 @@ var template_funcs = {
 
 for( var fn_name in template_funcs ) {
   trisquel[fn_name] = template_funcs[fn_name];
-  Template.prototype[fn_name] = template_funcs[fn_name];
+  Trisquel.prototype[fn_name] = template_funcs[fn_name];
 }
 
 trisquel.cmd('include', function (scope, expression) {

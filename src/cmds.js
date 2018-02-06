@@ -1,12 +1,6 @@
 
 var REeach = /([^,]+)(\s*,\s*([\S]+))? in (\S+)/;
 
-// function evalExpression (scope, expression) {
-//   return scope.eval(expression);
-// }
-//
-// evalExpression.$no_content = true;
-
 export default {
   '': function (scope, expression) {
     return this.eval(expression, scope);

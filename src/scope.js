@@ -1,8 +1,6 @@
 'use strict';
 
-import evalExpression from './eval';
-
-// var evalExpression = require('./eval');
+import {evalExpression} from './eval';
 
 function Scope (data) {
 	if( !(this instanceof Scope) ) return new Scope(data);
@@ -28,7 +26,5 @@ Scope.prototype.extend = function(data) {
 Scope.prototype.eval = function ( expression ) {
   return evalExpression(expression)(this);
 };
-
-// module.exports = Scope;
 
 export default Scope;
