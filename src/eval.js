@@ -50,13 +50,13 @@ export function parseExpression (expression) {
 }
 
 export function evalExpression (expression, filters) {
-  var parsed = parseExpression(expression);
-
-  var evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
-
-  var filters_map = filters ? mapFilters(filters, parsed.filters) : [];
+  var parsed = parseExpression(expression), evaluator,
+      filters_map = filters ? mapFilters(filters, parsed.filters) : [];
 
   return function (scope, processExpression) {
+    if( !processExpression && !evaluator ) {
+      evaluator = (new Function('scope', 'try { with(scope) { return (' + parsed.expression + '); }; } catch(err) { return \'\'; }'));
+    }
     return pipeResult(filters_map, processExpression ? processExpression.call(scope, parsed.expression, scope) : evaluator(scope), scope );
   };
 }

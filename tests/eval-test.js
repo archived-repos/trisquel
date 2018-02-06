@@ -18,7 +18,7 @@ template.filter('uppercase', function (value) {
 
 template.cmd('message', function (scope, expression) {
   return this.eval(expression, scope, function (key) {
-    return messages[key];
+    return messages[key] || ('{! ' + key + ' }');
   });
 }, true);
 
@@ -30,6 +30,7 @@ describe('eval', function () {
     ['$message{ yes | uppercase }', 'YES'],
     ['$message{ yes | lowercase | uppercase }', 'YES'],
     ['$message{ yes | uppercase | lowercase }', 'yes'],
+    ['$message{ 404.error | uppercase }', '{! 404.ERROR }'],
   ].forEach(function (pair) {
     it(pair[0] + ' -> ' + pair[1], function() {
       assert.strictEqual( template.compile(pair[0])(), pair[1]);
