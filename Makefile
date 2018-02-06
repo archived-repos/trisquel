@@ -34,3 +34,5 @@ github.release:
 	@true
 
 release: build npm.publish github.release
+
+.DEFAULT_GOAL := build
