@@ -19,7 +19,7 @@ template.filter('uppercase', function (value) {
 template.cmd('message', function (scope, expression) {
   return this.eval(expression, scope, function (key) {
     return messages[key] || ('{! ' + key + ' }');
-  });
+  }, true);
 }, true);
 
 describe('eval', function () {

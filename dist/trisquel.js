@@ -34,8 +34,12 @@ function mapFilters (filters, parts) {
   });
 }
 
+function _trimStr (str) {
+  return str.trim();
+}
+
 function parseExpression (expression) {
-  var parts = expression.split(/ *\| */),
+  var parts = expression.split('|'),
       filters =  [],
       part = parts.shift();
 
@@ -49,14 +53,16 @@ function parseExpression (expression) {
   }
 
   return {
-    expression: filters.shift().trim(),
-    filters: filters,
+    expression: filters.shift(),
+    filters: filters.map(_trimStr),
   };
 }
 
-function evalExpression (expression, filters) {
+function evalExpression (expression, filters, trim_expression) {
   var parsed = parseExpression(expression), evaluator,
       filters_map = filters ? mapFilters(filters, parsed.filters) : [];
+
+  if( trim_expression ) parsed.expression = parsed.expression.trim();
 
   return function (scope, processExpression) {
     if( !processExpression && !evaluator ) {
@@ -287,8 +293,8 @@ trisquel.Trisquel = Trisquel;
 
 var template_funcs = {
   compile: compile,
-  eval: function (expression, scope, processExpression) {
-    if( scope ) return evalExpression(expression, this.filters)(scope, processExpression);
+  eval: function (expression, scope, processExpression, trim_expression) {
+    if( scope ) return evalExpression(expression, this.filters, trim_expression)(scope, processExpression);
     return evalExpression(expression, this.filters);
   },
   filter: function (filter_name, filterFn) {

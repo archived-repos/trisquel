@@ -34,8 +34,8 @@ trisquel.Trisquel = Trisquel;
 
 var template_funcs = {
   compile: compile,
-  eval: function (expression, scope, processExpression) {
-    if( scope ) return evalExpression(expression, this.filters)(scope, processExpression);
+  eval: function (expression, scope, processExpression, trim_expression) {
+    if( scope ) return evalExpression(expression, this.filters, trim_expression)(scope, processExpression);
     return evalExpression(expression, this.filters);
   },
   filter: function (filter_name, filterFn) {

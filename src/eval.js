@@ -29,8 +29,12 @@ export function mapFilters (filters, parts) {
   });
 }
 
+function _trimStr (str) {
+  return str.trim();
+}
+
 export function parseExpression (expression) {
-  var parts = expression.split(/ *\| */),
+  var parts = expression.split('|'),
       filters =  [],
       part = parts.shift();
 
@@ -44,14 +48,16 @@ export function parseExpression (expression) {
   }
 
   return {
-    expression: filters.shift().trim(),
-    filters: filters,
+    expression: filters.shift(),
+    filters: filters.map(_trimStr),
   };
 }
 
-export function evalExpression (expression, filters) {
+export function evalExpression (expression, filters, trim_expression) {
   var parsed = parseExpression(expression), evaluator,
       filters_map = filters ? mapFilters(filters, parsed.filters) : [];
+
+  if( trim_expression ) parsed.expression = parsed.expression.trim();
 
   return function (scope, processExpression) {
     if( !processExpression && !evaluator ) {
