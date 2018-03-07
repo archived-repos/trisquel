@@ -77,12 +77,104 @@ console.log( template('${ person.last_name }: ${ \'greeting\' | message: { name:
 // returns 'Smith: Hi John!'
 ```
 
-#### Tests
+#### HTML Example
 
-``` sh
-npm test
+> src/index.html
+
+``` html
+<!DOCTYPE html>
+<html lang="${ lang }">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello world</title>
+  </head>
+  <body>
+
+  <p>Hi! My name is ${ profile.first_name }</p>
+
+  <ul>
+    $each{ text in list }<li>${ text }</li>{/}
+  </ul>
+
+  $if{ is_dev }
+    <script type="application/javascript">
+    (function (h,s) {
+    s.type='text/javascript';s.src='//' + location.hostname + ':35729/livereload.js';h.appendChild(s);
+    })(document.getElementsByTagName('head')[0], document.createElement('script') );
+    </script>
+  {/}
+  </body>
+</html>
 ```
 
-[![Build Status](https://travis-ci.org/kiltjs/trisquel.svg?branch=master)](https://travis-ci.org/kiltjs/trisquel) Travis
+``` js
+var fs = require('fs'),
+    trisquel = require('trisquel');
 
-[![wercker status](https://app.wercker.com/status/281f306e7157005f0a21b770fbb81086/s "wercker status")](https://app.wercker.com/project/bykey/281f306e7157005f0a21b770fbb81086) Wercker
+var html = fs.readFileSync( 'src/index.html', { encoding: 'utf8' }),
+    renderTemplate = trisquel(html);
+
+fs.writeFileSync( 'public/index.html' , renderTemplate({
+  lang: 'en-US',
+  is_dev: true,
+  profile: {
+    first_name: 'John'
+  },
+  list: [
+    'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.',
+    'Aliquam tincidunt mauris eu risus.',
+    'Vestibulum auctor dapibus neque.',
+    'Nunc dignissim risus id metus.',
+    'Cras ornare tristique elit.',
+    'Vivamus vestibulum ntulla nec ante.',
+    'Praesent placerat risus quis eros.',
+    'Fusce pellentesque suscipit nibh.',
+    'Integer vitae libero ac risus egestas placerat.',
+    'Vestibulum commodo felis quis tortor.',
+    'Ut aliquam sollicitudin leo.',
+    'Cras iaculis ultricies nulla.',
+    'Donec quis dui at dolor tempor interdum.',
+  ]
+}), { encoding: 'utf8' });
+
+```
+
+> Resulting HTML (public/index.html)
+
+``` html
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Hello world</title>
+  </head>
+  <body>
+
+  <p>Hi! My name is John</p>
+
+  <ul>
+    <li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+    <li>Aliquam tincidunt mauris eu risus.</li>
+    <li>Vestibulum auctor dapibus neque.</li>
+    <li>Nunc dignissim risus id metus.</li>
+    <li>Cras ornare tristique elit.</li>
+    <li>Vivamus vestibulum ntulla nec ante.</li>
+    <li>Praesent placerat risus quis eros.</li>
+    <li>Fusce pellentesque suscipit nibh.</li>
+    <li>Integer vitae libero ac risus egestas placerat.</li>
+    <li>Vestibulum commodo felis quis tortor.</li>
+    <li>Ut aliquam sollicitudin leo.</li>
+    <li>Cras iaculis ultricies nulla.</li>
+    <li>Donec quis dui at dolor tempor interdum.</li>
+  </ul>
+
+
+    <script type="application/javascript">
+    (function (h,s) {
+    s.type='text/javascript';s.src='//' + location.hostname + ':35729/livereload.js';h.appendChild(s);
+    })(document.getElementsByTagName('head')[0], document.createElement('script') );
+    </script>
+
+  </body>
+</html>
+```
