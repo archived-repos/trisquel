@@ -107,6 +107,8 @@ console.log( template('${ person.last_name }: ${ \'greeting\' | message: { name:
 </html>
 ```
 
+> processing HTML
+
 ``` js
 var fs = require('fs'),
     trisquel = require('trisquel');
