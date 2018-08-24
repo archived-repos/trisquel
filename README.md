@@ -6,6 +6,9 @@ Simple, customizable template engine for JavaScript
 [![Build Status](https://travis-ci.org/kiltjs/trisquel.svg?branch=master)](https://travis-ci.org/kiltjs/trisquel)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+<em style="color: firebrick;">¡ ALERT !</em> Moved to [@trisqueljs/template](https://github.com/trisqueljs/template)
+
+
 ### Installation
 
 ```.sh
